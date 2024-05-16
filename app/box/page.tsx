@@ -10,6 +10,18 @@ import {
     SecretsManagerClient,
     GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
+// import { secret } from '@aws-amplify/backend';
+// export const auth = defineAuth({
+//     loginWith: {
+//       email: true,
+//       externalProviders: {
+//         facebook: {
+//           clientId: secret('foo'),
+//           clientSecret: secret('bar')
+//         }
+//       }
+//     }
+// });
 
 // Itemの型を定義
 interface Item {
@@ -20,9 +32,11 @@ interface Item {
 
 const baseUrl = "https://account.box.com/api/oauth2/authorize";
 //const domain = "http://localhost:3000";
-const domain = "https://main.d134w93guui4w4.amplifyapp.com";
-const redirectUri = domain + "/box";
-const secretManagerUri = domain + '/api'
+//const domain = "https://main.d134w93guui4w4.amplifyapp.com";
+const domain = typeof window !== "undefined" ? window.location.origin : "https://main.d134w93guui4w4.amplifyapp.com";
+const redirectUri = `${domain}/box`;
+const secretManagerUri = `${domain}/api`;
+
 
 export default function Box() {
     const { tokens } = useTheme()
@@ -31,7 +45,9 @@ export default function Box() {
     const [items, setItems] = useState<Item[]>([]);
     const [id, setId] = useState('80269972749');
     const [errorMessage, setErrorMessage] = useState('');
-    
+    const [buttonDisabled, setButtonDisabled] = useState(true);
+
+    // SecretManager取得メソッド
     const fetchSecretManager = async () => {
         try {
             const response = await fetch(secretManagerUri, {
@@ -55,7 +71,7 @@ export default function Box() {
     // AccessToken取得メソッド
     const fetchAccessToken = async (code:string) => {
         const responseBody = await fetchSecretManager()
-        if (!responseBody || !responseBody.clientId || responseBody.clientSecret) {
+        if (!responseBody || !responseBody.clientId || !responseBody.clientSecret) {
             console.log("Fetch SecretManager Error in fetch access token.")
             return
         }
@@ -74,15 +90,17 @@ export default function Box() {
                 }),
             });
             const data = await response.json();
-            console.log("Get New faccess_token", data.access_token)
-            if (!data) {
+            console.log("Get New access token.", data.access_token)
+            if (!data.access_token) {
                 redirectBoxAuth(responseBody.clientId);
             }
-            const newAccessToken = data.access_token;
-            setAccessToken(newAccessToken);
-            saveAccessTokenToStorage(newAccessToken); // アクセストークンを保存
+            else {
+                setAccessToken(data.access_token);
+                saveAccessTokenToStorage(data.access_token); // アクセストークンを保存
+                setButtonDisabled(false); // ボタンを押せるように
+            }
         } catch (error) {
-            console.log("get token error", error)
+            console.log("Fetch token error...", error)
             return
         }
     };
@@ -91,7 +109,8 @@ export default function Box() {
     const redirectBoxAuth = async (clientId = '') => {
         if (!clientId) {
             const responseBody = await fetchSecretManager()
-            if (!responseBody || !responseBody.clientId || responseBody.clientSecret) {
+            console.log("resuponseBody", responseBody)
+            if (!responseBody || !responseBody.clientId || !responseBody.clientSecret) {
                 console.log("Fetch SecretManager Error in redirect.")
                 return
             }
@@ -112,8 +131,8 @@ export default function Box() {
         const storedAccessToken = getAccessTokenFromStorage();
         if (storedAccessToken && storedAccessToken !== 'undefined') {
             setAccessToken(storedAccessToken);
-        }
-        else {
+            setButtonDisabled(false); // ボタンを押せるように
+        } else {
             const url = new URL(window.location.href);
             const code = url.searchParams.get("code");
             // Box認証ページからリダイレクトされた場合、パラメータにcodeが付与され、そのコードでトークンを取得する。
@@ -184,7 +203,10 @@ export default function Box() {
                                 errorMessage={errorMessage}
                                 hasError
                             />
-                            <Button onClick={() => getFiles()}>
+                            <Button 
+                                isDisabled={buttonDisabled}
+                                onClick={() => getFiles()}
+                            >
                                 最新のファイルを取得する
                             </Button>
                         </Flex>
