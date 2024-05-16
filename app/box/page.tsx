@@ -18,10 +18,11 @@ interface Item {
     type: string;
 }
 
-
 const baseUrl = "https://account.box.com/api/oauth2/authorize";
-const redirectUri = "http://localhost:3000/box";
-const secretManagerUri = 'http://localhost:3000/api'
+//const domain = "http://localhost:3000";
+const domain = "https://main.d134w93guui4w4.amplifyapp.com";
+const redirectUri = domain + "/box";
+const secretManagerUri = domain + '/api'
 
 export default function Box() {
     const { tokens } = useTheme()
