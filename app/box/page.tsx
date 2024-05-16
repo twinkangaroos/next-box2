@@ -11,6 +11,14 @@ import {
     GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
 
+// Itemの型を定義
+interface Item {
+    id: string;
+    name: string;
+    type: string;
+}
+
+
 const baseUrl = "https://account.box.com/api/oauth2/authorize";
 const redirectUri = "http://localhost:3000/box";
 const secretManagerUri = 'http://localhost:3000/api'
@@ -18,8 +26,8 @@ const secretManagerUri = 'http://localhost:3000/api'
 export default function Box() {
     const { tokens } = useTheme()
 
-    const [accessToken, setAccessToken] = useState(null);
-    const [items, setItems] = useState([]);
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [items, setItems] = useState<Item[]>([]);
     const [id, setId] = useState('80269972749');
     const [errorMessage, setErrorMessage] = useState('');
     
@@ -172,16 +180,20 @@ export default function Box() {
                                 最新のファイルを取得する
                             </Button>
                         </Flex>
-                        {items.map((item) => (
-                            <Folder
-                                key={item.id}
-                                id={item.id}
-                                name={item.name}
-                                type={item.type}
-                                getFiles={getFiles}
-                                accessToken={accessToken}
-                            />
-                        ))}
+                        {
+                            accessToken && (
+                                items.map((item) => (
+                                    <Folder
+                                        key={item.id}
+                                        id={item.id}
+                                        name={item.name}
+                                        type={item.type}
+                                        getFiles={getFiles}
+                                        accessToken={accessToken}
+                                    />
+                                ))
+                            )
+                        }
                     </Flex>
                 </View>
             </div>
