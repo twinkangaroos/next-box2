@@ -19,8 +19,7 @@ interface FolderProps {
 // const Folder = ({ id, name, type, getFiles, accessToken }) => {
 const Folder: React.FC<FolderProps> = ({ id, name, type, getFiles, accessToken }) => {
     const [expanded, setExpanded] = useState(false);
-    // const toggleExpand = () => setExpanded(!expanded);
-    const [subFolders, setSubFolders] = useState([]);
+    const [subFolders, setSubFolders] = useState<FolderProps[]>([]);
 
     const toggleExpand = async () => {
         if (type !== 'folder') {
@@ -58,7 +57,6 @@ const Folder: React.FC<FolderProps> = ({ id, name, type, getFiles, accessToken }
         document.body.removeChild(link);
     };
 
-    //return toggleExpand ? (
     return (
         <div>
             <Flex style={{ display: 'flex', alignItems: 'center' }}>
