@@ -39,8 +39,8 @@ export default function Box() {
                 body: '',
             });
             const data = await response.json();
-            // const _clientId = data.body.clientId
-            // const _clientSecret = data.body.clientSecret
+            console.log("clientId", data.body.clientId);
+            console.log("clientSecret", data.body.clientSecret)
             if (data.statusCode === 200) {
                 return data.body
             } else {
@@ -55,7 +55,10 @@ export default function Box() {
     // AccessToken取得メソッド
     const fetchAccessToken = async (code:string) => {
         const responseBody = await fetchSecretManager()
-        
+        if (!responseBody || !responseBody.clientId || responseBody.clientSecret) {
+            console.log("Fetch SecretManager Error in fetch access token.")
+            return
+        }
         try {
             const response = await fetch("https://api.box.com/oauth2/token", {
                 method: "POST",
@@ -88,6 +91,10 @@ export default function Box() {
     const redirectBoxAuth = async (clientId = '') => {
         if (!clientId) {
             const responseBody = await fetchSecretManager()
+            if (!responseBody || !responseBody.clientId || responseBody.clientSecret) {
+                console.log("Fetch SecretManager Error in redirect.")
+                return
+            }
             clientId = responseBody.clientId
         }
         const authorizationUrl = `${baseUrl}?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}`;
