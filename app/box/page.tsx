@@ -142,9 +142,9 @@ export default function Box() {
             );
             const data = await response.json();
             setItems(data.entries);
-            console.log("Get items!", data.entries)
+            console.log("Get items!", data.entries);
         } catch (error) {
-            setErrorMessage("Access token expired.", error);
+            setErrorMessage("Access token expired.");
             //redirectBoxAuth();
             return;
         }
